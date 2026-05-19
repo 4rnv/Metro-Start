@@ -1,0 +1,28 @@
+const IconMap = {
+    "substack.com": "substack",
+    "pinterest.com": "pinterest",
+    "facebook.com": "facebook",
+    "medium.com": "medium",
+    "yahoo.com": "yahoo",
+    "mail.yahoo.com": "yahoo",
+    "mail.google.com": "gmail",
+    "photos.google.com": "googlephotos",
+    "maps.google.com": "googlemaps",
+    "play.google.com": "googleplay",
+    "meet.google.com": "googlemeet",
+    "claude.ai": "claude",
+    "perplexity.ai": "perplexity",
+    "whatsapp.com": "whatsapp",
+    "web.whatsapp.com": "whatsapp",
+    "reddit.com": "reddit",
+    "x.com": "x",
+    "twitter.com": "x",
+    "wikipedia.org": "wikipedia",
+    "discord.com": "discord",
+    "youtube.com": "youtube",
+    "duckduckgo.com": "duckduckgo",
+    "duck.ai": "duckduckgo",
+    "huggingface.co": "huggingface",
+    "firefox.com": "firefox"
+}
+export default IconMap

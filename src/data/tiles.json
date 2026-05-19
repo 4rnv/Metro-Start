@@ -1,0 +1,129 @@
+{
+    "grid": {
+        "columns": 16,
+        "rows": 8
+    },
+    "tiles": [
+        {
+            "id": "tile-1",
+            "name": "Google",
+            "icon": "google",
+            "url": "https://google.com",
+            "colour": "#2D89EF",
+            "opacity": 1,
+            "x": 1,
+            "y": 1,
+            "type": "normal"
+        },
+        {
+            "id": "tile-2",
+            "name": "Youtube",
+            "icon": "youtube",
+            "url": "https://youtube.com",
+            "colour": "#E81123",
+            "opacity": 1,
+            "x": 3,
+            "y": 1,
+            "type": "wide"
+        },
+        {
+            "id": "tile-3",
+            "name": "ChatGPT",
+            "icon": "chatgpt",
+            "url": "https://chatgpt.com",
+            "colour": "#6B46C1",
+            "opacity": 1,
+            "x": 7,
+            "y": 1,
+            "type": "normal"
+        },
+        {
+            "id": "tile-4",
+            "name": "Wikipedia",
+            "icon": "wikipedia",
+            "url": "https://wikipedia.org",
+            "colour": "#00A300",
+            "opacity": 1,
+            "x": 9,
+            "y": 1,
+            "type": "wide"
+        },
+        {
+            "id": "tile-5",
+            "name": "Yahoo!",
+            "icon": "yahoo",
+            "url": "https://yahoo.com",
+            "colour": "#008A00",
+            "opacity": 1,
+            "x": 1,
+            "y": 3,
+            "type": "wide"
+        },
+        {
+            "id": "tile-6",
+            "name": "Bing",
+            "icon": "bing",
+            "url": "https://bing.com",
+            "colour": "#1BA1E2",
+            "opacity": 1,
+            "x": 5,
+            "y": 3,
+            "type": "normal"
+        },
+        {
+            "id": "tile-7",
+            "name": "GMail",
+            "icon": "gmail",
+            "url": "https://mail.google.com",
+            "colour": "#F472D0",
+            "opacity": 1,
+            "x": 7,
+            "y": 3,
+            "type": "tiny"
+        },
+        {
+            "id": "tile-8",
+            "name": "Discord",
+            "icon": "discord",
+            "url": "https://discord.com/app",
+            "colour": "#4325A3",
+            "opacity": 1,
+            "x": 8,
+            "y": 3,
+            "type": "tiny"
+        },
+        {
+            "id": "tile-9",
+            "name": "GitHub",
+            "icon": "github",
+            "url": "https://github.com",
+            "colour": "#2B5797",
+            "opacity": 1,
+            "x": 9,
+            "y": 3,
+            "type": "large"
+        },
+        {
+            "id": "tile-10",
+            "name": "X",
+            "icon": "x",
+            "url": "https://x.com",
+            "colour": "#C38272",
+            "opacity": 1,
+            "x": 13,
+            "y": 1,
+            "type": "normal"
+        },
+        {
+            "id": "tile-11",
+            "name": "Yahoo! Finance",
+            "icon": "finance",
+            "url": "https://finance.yahoo.com",
+            "colour": "#008272",
+            "opacity": 1,
+            "x": 15,
+            "y": 1,
+            "type": "normal"
+        }
+    ]
+}

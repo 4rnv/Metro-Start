@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  box-sizing: border-box;
+  background: black;
+  font-family: 'Segoe UI light', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+  scrollbar-width: none;
+}
+
+.tile {
+  @apply flex items-end justify-start text-white transition-transform pl-2 pb-2;
+  transform-origin: center;
+  transition:
+    transform 180ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 180ms ease;
+  will-change: transform;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tile-content {
+  width: 100%;
+}
+
+.tile-icon {
+  opacity: 0.9;
+}
+
+.tile:hover {
+  transform: translate3d(10px, -10px, 10px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.horizontal-slider {
+  display: flex;
+  width: 100vw;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.horizontal-slider>* {
+  scroll-snap-align: start;
+}
+
+.horizontal-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal>input {
+  border: 2px solid gray;
+  padding: 0.5rem;
+}
+
+.modal>input[type="color"] {
+  border: none;
+  padding: 0;
+}
+
+.modal>*>button:hover {
+  background: #131313;
+  border: 1px solid lightgray;
+}
+
+.metro-button-attention {
+  background: #252525;
+  padding: 0.5rem;
+  @apply grow border-1 border-[#A0A0A0] text-[#FFFFFF] hover:cursor-pointer;
+}
+
+.metro-button-subdued {
+  background: #252525;
+  padding: 0.5rem;
+  @apply grow border-1 border-[#707070] text-[#909090] hover:cursor-pointer;
+}
+
+.metro-button-subdued:hover,
+.metro-button-attention:hover {
+  background: #131313;
+  border: 1px solid lightgray;
+}
