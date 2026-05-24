@@ -5,6 +5,7 @@ body {
   box-sizing: border-box;
   background: black;
   font-family: 'Segoe UI light', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
 }
 
 body::-webkit-scrollbar {

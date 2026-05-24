@@ -11,7 +11,6 @@ type Tile = {
   name: string
   url: string
   colour: string
-  opacity?: number //maybe bool
   x: number
   y: number
   type: TileType | string
@@ -20,10 +19,10 @@ type Tile = {
 type Settings = {
   gap: number
   transparency: boolean
-  theme: 'windows8' | 'windows10' | 'vivaldi' | 'transparent' | '' | null
+  theme: string
   backgroundImage: string | null
-  gridRows : number,
-  gridCols : number
+  gridRows: number,
+  gridCols: number
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -31,8 +30,8 @@ const DEFAULT_SETTINGS: Settings = {
   transparency: false,
   theme: '',
   backgroundImage: '',
-  gridRows : 8,
-  gridCols : 16
+  gridRows: 8,
+  gridCols: 16
 }
 
 const SETTINGS_KEY = 'metro-settings'
@@ -44,7 +43,7 @@ const TILE_SIZES = {
   large: { w: 4, h: 4 },
 }
 
-const GridSect = ({ settings, tiles, setTiles} : {settings : Settings, tiles : Tile[], setTiles: (tiles : Tile[]) => void}) => {
+const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Tile[], setTiles: (tiles: Tile[]) => void }) => {
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const [contextMenu, setContextMenu] = useState<{ tileId: string; x: number; y: number } | null>(null)
   const [draggedTile, setDraggedTile] = useState<Tile | null>(null)
@@ -61,8 +60,8 @@ const GridSect = ({ settings, tiles, setTiles} : {settings : Settings, tiles : T
   })
   const gap = settings.gap
   const gridInfo = {
-    "rows" : settings.gridRows,
-    "columns" : settings.gridCols
+    "rows": settings.gridRows,
+    "columns": settings.gridCols
   }
 
   useEffect(() => {
@@ -276,11 +275,17 @@ const GridSect = ({ settings, tiles, setTiles} : {settings : Settings, tiles : T
   }
 
   return (
-    <div className='w-screen h-screen shrink-0 p-4' onClick={closeContextMenu}>
+    <div className='w-screen h-screen shrink-0 p-4' onClick={closeContextMenu}  style={{
+      backgroundImage: settings.backgroundImage ? `url(${settings.backgroundImage})` : undefined,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      backdropFilter: `blur(2px)`
+    }}>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Start</h1>
-        <div className='w-1/3 flex justify-between'>
-          <button className='text-white text-3xl inline-block hover:cursor-pointer' title='Add tile' onClick={() => { openAddModal() }}>+</button>
-          <button className='text-white text-3xl inline-block hover:cursor-pointer'>Scroll for settings</button>
+        <div className='w-1/3 flex justify-between text-3xl text-[#bbbbbb]'>
+          <button className='inline-block hover:cursor-pointer hover:text-white' title='Add tile' onClick={() => { openAddModal() }}>Add Tile</button>
+          <button className='inline-block hover:cursor-pointer hover:text-white'>Scroll for settings</button>
         </div>
       </div>
       <div className='grid-wrapper flex justify-center'
@@ -307,13 +312,13 @@ const GridSect = ({ settings, tiles, setTiles} : {settings : Settings, tiles : T
                 key={tile.id}
                 className="tile text-base"
                 style={{
-                  background: tile.colour || "#1BA1E2", //should be tile.colour
-                  opacity: isDragging ? 0.6 : (tile.opacity ?? 1),
+                  background: settings.transparency ? `${tile.colour}50` : tile.colour,
                   gridColumn:
                     `${tile.x} / span ${size.w}`,
                   gridRow:
                     `${tile.y} / span ${size.h}`,
                   zIndex: isDragging ? 50 : 1,
+                  backdropFilter: settings.transparency ? 'blur(8px)' : 'none'
                 }}
                 onContextMenu={(e) => {
                   e.preventDefault()
@@ -346,7 +351,8 @@ const GridSect = ({ settings, tiles, setTiles} : {settings : Settings, tiles : T
                 gridColumn: `${dragPos.x} / span ${TILE_SIZES[draggedTile.type].w}`,
                 gridRow: `${dragPos.y} / span ${TILE_SIZES[draggedTile.type].h}`,
                 zIndex: 100,
-                boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+                backdropFilter: settings.transparency ? 'blur(12px)' : 'none'
               }}
             >
               <div className="tile-content w-full h-full flex flex-col justify-end items-start p-1" style={{
@@ -519,7 +525,7 @@ const DeleteTile = (tiles: Tile[], id: string): Tile[] => {
   return updatedTiles
 }
 
-const SettingsSect = ({ settings, setSettings }: { settings: Settings, setSettings: (settings: Settings) => void }) => {
+const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings, setSettings: (settings: Settings) => void, setTiles : (tile : Tile[]) => void }) => {
   const importTiles = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -531,14 +537,13 @@ const SettingsSect = ({ settings, setSettings }: { settings: Settings, setSettin
     reader.onload = (e) => {
       try {
         const parsed = JSON.parse(e.target?.result as string)
-
-        if (!Array.isArray(parsed)) {
+        const isValidTile = parsed.every(tile => tile.id && tile.name && tile.type && tile.x && tile.y)
+        if (!isValidTile) {
           throw new Error('Invalid format: Expected array of tiles')
         }
-
         SaveTiles(parsed)
+        setTiles(parsed)
         alert("Tiles imported successfully")
-        window.location.reload() //should do setTiles instead
       } catch (err) {
         alert(`Invalid File: ${err}`)
         console.error("Invalid File", err)
@@ -571,7 +576,7 @@ const SettingsSect = ({ settings, setSettings }: { settings: Settings, setSettin
     <div className='w-screen h-screen shrink-0 p-4'>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Settings</h1><button className='text-white text-3xl inline-block hover:cursor-pointer'>Scroll left for start</button></div>
       <div className='flex gap-4 w-20'>
-        Tile Gap
+        <p>Tile Gap</p>
         <input
           type="range"
           min={0}
@@ -582,10 +587,38 @@ const SettingsSect = ({ settings, setSettings }: { settings: Settings, setSettin
             ...settings,
             gap: Number(e.target.value)
           })}
-
         />
         <label className='text-white'>{settings.gap}</label>
       </div>
+      <div className='flex gap-4 w-20'>
+        <input type="checkbox" name="transparency" id="transparency"
+          onChange={e => setSettings({
+            ...settings,
+            transparency: e.target.checked
+          })} />
+        <label htmlFor="transparency">Transparency Effects</label>
+      </div>
+      <div className='flex gap-4 w-20'>
+        <input type="text" name="backgroundImageURL" id="backgroundImageURL" className='border-2 bg-[#252525]' value={settings.backgroundImage}
+          onChange={e => setSettings({
+            ...settings,
+            backgroundImage: e.target.value
+          })} />
+        <label htmlFor="transparency">Background Image URL</label>
+      </div>
+      <div className='flex gap-4 w-20'>
+        <select name="backgroundTheme" id="backgroundTheme" value={settings.theme}
+          onChange={e => setSettings({
+            ...settings,
+            theme: e.target.value
+          })}>
+          <option value="default">Default</option>
+          <option value="windows8">Windows 8</option>
+          <option value="windows10">Windows 10</option>
+        </select>
+        <label htmlFor="transparency">Background Theme</label>
+      </div>
+
       <div className='flex gap-4 w-20'>
         <label className="metro-button-attention">
           Import
@@ -628,9 +661,8 @@ const App = () => {
   }, [tiles])
   return (
     <div className="horizontal-slider flex overflow-hidden transition-transform duration-300">
-      <GridSect settings={settings} tiles={tiles} setTiles={setTiles}/>
-      <SettingsSect settings={settings} setSettings={setSettings}
-      />
+      <GridSect settings={settings} tiles={tiles} setTiles={setTiles} />
+      <SettingsSect settings={settings} setSettings={setSettings} setTiles={setTiles}/>
     </div>
   )
 }
