@@ -275,13 +275,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   }
 
   return (
-    <div className='w-screen h-screen shrink-0 p-4' onClick={closeContextMenu}  style={{
-      backgroundImage: settings.backgroundImage ? `url(${settings.backgroundImage})` : undefined,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-      backdropFilter: `blur(2px)`
-    }}>
+    <div className='w-screen h-screen shrink-0 p-4' onClick={closeContextMenu}>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Start</h1>
         <div className='w-1/3 flex justify-between text-3xl text-[#bbbbbb]'>
           <button className='inline-block hover:cursor-pointer hover:text-white' title='Add tile' onClick={() => { openAddModal() }}>Add Tile</button>
@@ -525,7 +519,7 @@ const DeleteTile = (tiles: Tile[], id: string): Tile[] => {
   return updatedTiles
 }
 
-const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings, setSettings: (settings: Settings) => void, setTiles : (tile : Tile[]) => void }) => {
+const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings, setSettings: (settings: Settings) => void, setTiles: (tile: Tile[]) => void }) => {
   const importTiles = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -575,61 +569,81 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
   return (
     <div className='w-screen h-screen shrink-0 p-4'>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Settings</h1><button className='text-white text-3xl inline-block hover:cursor-pointer'>Scroll left for start</button></div>
-      <div className='flex gap-4 w-20'>
+      <div className='settings-group'>
         <p>Tile Gap</p>
-        <input
-          type="range"
-          min={0}
-          max={16}
-          step={4}
-          value={settings.gap}
-          onChange={e => setSettings({
-            ...settings,
-            gap: Number(e.target.value)
-          })}
+        <div className='flex items-center gap-4'>
+          <input
+            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+            min={0}
+            max={16}
+            step={4}
+            value={settings.gap}
+            onChange={e =>
+              setSettings({
+                ...settings,
+                gap: Number(e.target.value)
+              })
+            }
+          />
+          <span className='text-xl tracking-wide'>{settings.gap}px</span>
+        </div>
+      </div>
+      <div className='settings-group'>
+        <p className='flex items-center gap-4'>
+          <input type="checkbox" className='metro-checkbox' checked={settings.transparency}
+            onChange={e =>
+              setSettings({
+                ...settings,
+                transparency: e.target.checked
+              })
+            }
+          />
+          Transparency Effects
+        </p>
+      </div>
+      <div className='settings-group'>
+        <p>Background Image URL</p>
+        <input type="text" className='bg-[#00000066] border-2 border-transparent focus:border-white p-2 outline-none'
+          value={settings.backgroundImage}
+          onChange={e =>
+            setSettings({
+              ...settings,
+              backgroundImage: e.target.value
+            })
+          }
         />
-        <label className='text-white'>{settings.gap}</label>
       </div>
-      <div className='flex gap-4 w-20'>
-        <input type="checkbox" name="transparency" id="transparency"
-          onChange={e => setSettings({
-            ...settings,
-            transparency: e.target.checked
-          })} />
-        <label htmlFor="transparency">Transparency Effects</label>
-      </div>
-      <div className='flex gap-4 w-20'>
-        <input type="text" name="backgroundImageURL" id="backgroundImageURL" className='border-2 bg-[#252525]' value={settings.backgroundImage}
-          onChange={e => setSettings({
-            ...settings,
-            backgroundImage: e.target.value
-          })} />
-        <label htmlFor="transparency">Background Image URL</label>
-      </div>
-      <div className='flex gap-4 w-20'>
-        <select name="backgroundTheme" id="backgroundTheme" value={settings.theme}
-          onChange={e => setSettings({
-            ...settings,
-            theme: e.target.value
-          })}>
+      <div className='settings-group'>
+        <p>Theme</p>
+        <select
+          className='bg-[#00000066] border-2 border-transparent focus:border-white p-2 outline-none'
+          value={settings.theme}
+          onChange={e =>
+            setSettings({
+              ...settings,
+              theme: e.target.value
+            })
+          }
+        >
           <option value="default">Default</option>
           <option value="windows8">Windows 8</option>
           <option value="windows10">Windows 10</option>
         </select>
-        <label htmlFor="transparency">Background Theme</label>
       </div>
-
-      <div className='flex gap-4 w-20'>
-        <label className="metro-button-attention">
-          Import
-          <input
-            type="file"
-            accept=".json,application/json"
-            onChange={importTiles}
-            className="hidden"
-          />
-        </label>
-        <button className='metro-button-attention' onClick={() => exportTiles()}>Export</button>
+      <div className='settings-group'>
+        <p>Import/Export Tiles</p>
+        <div className='w-20 gap-4 flex'>
+          <label className="metro-button-attention">
+            Import
+            <input
+              type="file"
+              accept=".json,application/json"
+              onChange={importTiles}
+              className="hidden"
+            />
+          </label>
+          <button className='metro-button-attention' onClick={() => exportTiles()}>Export</button>
+        </div>
       </div>
     </div>
   )
@@ -660,9 +674,16 @@ const App = () => {
     SaveTiles(tiles)
   }, [tiles])
   return (
-    <div className="horizontal-slider flex overflow-hidden transition-transform duration-300">
+    <div className="horizontal-slider flex overflow-hidden transition-transform duration-300" style={{
+    backgroundImage: settings.backgroundImage 
+      ? `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(${settings.backgroundImage})` 
+      : undefined,
+    backgroundSize: 'cover, cover',
+    backgroundPosition: 'center, center',
+    backgroundAttachment: 'fixed',
+  }}>
       <GridSect settings={settings} tiles={tiles} setTiles={setTiles} />
-      <SettingsSect settings={settings} setSettings={setSettings} setTiles={setTiles}/>
+      <SettingsSect settings={settings} setSettings={setSettings} setTiles={setTiles} />
     </div>
   )
 }

@@ -96,3 +96,42 @@ body::-webkit-scrollbar {
   background: #131313;
   border: 1px solid lightgray;
 }
+
+.settings-group {
+  @apply flex flex-col w-1/2 gap-2 mt-10 mb-4;
+}
+
+.settings-group p {
+  @apply font-semibold;
+}
+
+.metro-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: none;
+  cursor: pointer;
+}
+
+.metro-checkbox {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid white;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.metro-checkbox:checked {
+  background: rgb(58, 150, 255);
+  border: 10px solid rgb(58, 150, 255);
+}
+
+.metro-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: #111;
+}
