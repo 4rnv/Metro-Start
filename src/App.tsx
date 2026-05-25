@@ -19,19 +19,25 @@ type Tile = {
 type Settings = {
   gap: number
   transparency: boolean
+  opacity: number
   theme: string
   backgroundImage: string | null
-  gridRows: number,
+  gridRows: number
   gridCols: number
+  horizontalPadding: number
+  verticalPadding: number
 }
 
 const DEFAULT_SETTINGS: Settings = {
   gap: 8,
   transparency: false,
+  opacity: 255,
   theme: '',
   backgroundImage: '',
   gridRows: 8,
-  gridCols: 16
+  gridCols: 16,
+  horizontalPadding: 160,
+  verticalPadding: 160
 }
 
 const SETTINGS_KEY = 'metro-settings'
@@ -41,6 +47,14 @@ const TILE_SIZES = {
   normal: { w: 2, h: 2 },
   wide: { w: 4, h: 2 },
   large: { w: 4, h: 4 },
+}
+
+const ToHex = (num: number) => {
+  let hex = Number(num).toString(16);
+  while (hex.length < 2) {
+    hex = "0" + hex;
+  }
+  return hex;
 }
 
 const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Tile[], setTiles: (tiles: Tile[]) => void }) => {
@@ -92,8 +106,8 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
-  const horizontalPadding = 160
-  const verticalPadding = 160
+  const horizontalPadding = settings.horizontalPadding
+  const verticalPadding = settings.verticalPadding
   const availableWidth = viewport.width - horizontalPadding
   const availableHeight = viewport.height - verticalPadding
 
@@ -277,9 +291,9 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   return (
     <div className='w-screen h-screen shrink-0 p-4' onClick={closeContextMenu}>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Start</h1>
-        <div className='w-1/3 flex justify-between text-3xl text-[#bbbbbb]'>
-          <button className='inline-block hover:cursor-pointer hover:text-white' title='Add tile' onClick={() => { openAddModal() }}>Add Tile</button>
-          <button className='inline-block hover:cursor-pointer hover:text-white'>Scroll for settings</button>
+        <div className='w-1/3 flex justify-between text-3xl text-white'>
+          <button className='inline-block hover:cursor-pointer' title='Add tile' onClick={() => { openAddModal() }}>Add Tile</button>
+          <button className='inline-block'>Scroll for settings</button>
         </div>
       </div>
       <div className='grid-wrapper flex justify-center'
@@ -306,7 +320,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
                 key={tile.id}
                 className="tile text-base"
                 style={{
-                  background: settings.transparency ? `${tile.colour}50` : tile.colour,
+                  background: settings.transparency ? `${tile.colour}${ToHex(settings.opacity)}` : tile.colour,
                   gridColumn:
                     `${tile.x} / span ${size.w}`,
                   gridRow:
@@ -567,8 +581,8 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
   }
 
   return (
-    <div className='w-screen h-screen shrink-0 p-4'>
-      <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Settings</h1><button className='text-white text-3xl inline-block hover:cursor-pointer'>Scroll left for start</button></div>
+    <div className='w-screen h-screen shrink-0 p-4 overflow-scroll'>
+      <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Settings</h1><button className='text-white text-3xl inline-block'>Scroll left for start</button></div>
       <div className='settings-group'>
         <p>Tile Gap</p>
         <div className='flex items-center gap-4'>
@@ -602,8 +616,64 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
         </p>
       </div>
       <div className='settings-group'>
+        <p>Opacity</p>
+        <div className='flex items-center gap-4'>
+          <input
+            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+            min={0}
+            max={255}
+            step={51}
+            value={settings.opacity}
+            onChange={e =>
+              setSettings({
+                ...settings,
+                opacity: Number(e.target.value)
+              })
+            }
+          />
+          <span>{Number(settings.opacity) / 51}</span>
+        </div>
+      </div>
+      <div className='settings-group'>
+        <p>Padding</p>
+        <div className='flex items-center gap-4'>
+          <span>Horizontal</span>
+          <input
+            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+            min={0}
+            max={400}
+            step={40}
+            value={settings.horizontalPadding}
+            onChange={e =>
+              setSettings({
+                ...settings,
+                horizontalPadding: Number(e.target.value)
+              })
+            }
+          />
+          <span>{settings.horizontalPadding / 40}</span>
+        </div>
+        <div className='flex items-center gap-4'>
+          <span>Vertical</span>
+          <input
+            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+            min={0}
+            max={400}
+            step={40}
+            value={settings.verticalPadding}
+            onChange={e =>
+              setSettings({
+                ...settings,
+                verticalPadding: Number(e.target.value)
+              })
+            }
+          />
+          <span>{settings.verticalPadding / 40}</span>
+        </div>
+      </div>
+      <div className='settings-group'>
         <p>Background Image URL</p>
-        <input type="text" className='bg-[#00000066] border-2 border-transparent focus:border-white p-2 outline-none'
+        <input type="text" className='bg-[#00000066] border-2 border-[#252525] focus:border-white hover:border-white p-2 outline-none'
           value={settings.backgroundImage}
           onChange={e =>
             setSettings({
@@ -616,7 +686,7 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
       <div className='settings-group'>
         <p>Theme</p>
         <select
-          className='bg-[#00000066] border-2 border-transparent focus:border-white p-2 outline-none'
+          className='bg-[#00000066] border-2 border-transparent focus:border-white hover:border-white p-2 outline-none'
           value={settings.theme}
           onChange={e =>
             setSettings({
@@ -675,13 +745,13 @@ const App = () => {
   }, [tiles])
   return (
     <div className="horizontal-slider flex overflow-hidden transition-transform duration-300" style={{
-    backgroundImage: settings.backgroundImage 
-      ? `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(${settings.backgroundImage})` 
-      : undefined,
-    backgroundSize: 'cover, cover',
-    backgroundPosition: 'center, center',
-    backgroundAttachment: 'fixed',
-  }}>
+      backgroundImage: settings.backgroundImage
+        ? `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(${settings.backgroundImage})`
+        : undefined,
+      backgroundSize: 'cover, cover',
+      backgroundPosition: 'center, center',
+      backgroundAttachment: 'fixed',
+    }}>
       <GridSect settings={settings} tiles={tiles} setTiles={setTiles} />
       <SettingsSect settings={settings} setSettings={setSettings} setTiles={setTiles} />
     </div>
