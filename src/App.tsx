@@ -604,7 +604,7 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
       newSettings = {
         ...newSettings,
         backgroundImage: ``,
-        gap: 4,
+        gap: 8,
         opacity: 255,
         transparency: false
       }
