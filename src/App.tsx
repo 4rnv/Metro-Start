@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: Settings = {
   gap: 8,
   transparency: false,
   opacity: 255,
-  theme: '',
+  theme: 'default',
   backgroundImage: '',
   gridRows: 8,
   gridCols: 16,
