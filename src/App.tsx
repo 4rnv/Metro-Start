@@ -79,7 +79,6 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   }
 
   useEffect(() => {
-    // setTiles(LoadTiles())
     const handleResize = () => {
       setViewport({
         width: window.innerWidth,
@@ -117,12 +116,14 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   )))
 
   const addTile = () => {
-    const position =
-      FindNextTilePosition(
-        tiles,
-        newTile.type as TileType,
-        gridInfo
-      )
+    const position = FindNextTilePosition(tiles, newTile.type as TileType, gridInfo)
+    if (position.x === 1 && position.y === 1 && tiles.length > 0) {
+      const canPlace = isPositionFree(tiles, 1, 1, TILE_SIZES[newTile.type as TileType])
+      if (!canPlace) {
+        alert("No space left on the grid for this tile size.")
+        return
+      }
+    }
 
     const tile: Tile = {
       id: crypto.randomUUID(),
@@ -292,7 +293,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
     <div className='w-screen h-screen shrink-0 p-4' onClick={closeContextMenu}>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Start</h1>
         <div className='w-1/3 flex justify-between text-3xl text-white'>
-          <button className='inline-block hover:cursor-pointer' title='Add tile' onClick={() => { openAddModal() }}>Add Tile</button>
+          <button className='inline-block cursor-pointer' title='Add tile' onClick={() => { openAddModal() }}>Add Tile</button>
           <button className='inline-block'>Scroll for settings</button>
         </div>
       </div>
@@ -580,6 +581,42 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
     }
   }
 
+  const applyTheme = (theme: string) => {
+    if (!window.confirm(`Apply ${theme} theme?`)) return
+    let newSettings = { ...settings, theme : theme }
+    if (theme === 'windows8') {
+      newSettings = {
+        ...newSettings,
+        backgroundImage: `assets/windows8bg.png`,
+        gap: 8,
+        opacity: 255,
+        transparency: false
+      }
+    } else if (theme === 'windows10') {
+      newSettings = {
+        ...newSettings,
+        backgroundImage: `assets/windows10bg.png`,
+        gap: 4,
+        opacity: 51,
+        transparency: true
+      }
+    } else {
+      newSettings = {
+        ...newSettings,
+        backgroundImage: ``,
+        gap: 4,
+        opacity: 255,
+        transparency: false
+      }
+    }
+    setSettings(newSettings)
+  }
+
+  const confirmSettings = (newSettings: Settings) => {
+    if (window.confirm('Apply these settings?')) {
+      setSettings(newSettings)
+    }
+  }
   return (
     <div className='w-screen h-screen shrink-0 p-4 overflow-scroll'>
       <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Settings</h1><button className='text-white text-3xl inline-block'>Scroll left for start</button></div>
@@ -676,7 +713,7 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
         <input type="text" className='bg-[#00000066] border-2 border-[#252525] focus:border-white hover:border-white p-2 outline-none'
           value={settings.backgroundImage}
           onChange={e =>
-            setSettings({
+            confirmSettings({
               ...settings,
               backgroundImage: e.target.value
             })
@@ -688,12 +725,9 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
         <select
           className='bg-[#00000066] border-2 border-transparent focus:border-white hover:border-white p-2 outline-none'
           value={settings.theme}
-          onChange={e =>
-            setSettings({
-              ...settings,
-              theme: e.target.value
-            })
-          }
+          onChange={e => {
+            applyTheme(e.target.value)
+          }}
         >
           <option value="default">Default</option>
           <option value="windows8">Windows 8</option>
