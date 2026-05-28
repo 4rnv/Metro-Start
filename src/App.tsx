@@ -72,6 +72,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
     colour: '#1BA1E2',
     type: 'normal'
   })
+  const [customIcon, setCustomIcon] = useState<string>('')
   const gap = settings.gap
   const gridInfo = {
     "rows": settings.gridRows,
@@ -128,7 +129,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
     const tile: Tile = {
       id: crypto.randomUUID(),
       name: newTile.name,
-      icon: IconMap[handleURL(newTile.url)],
+      icon: newTile.icon?.startsWith('data:') ? newTile.icon : IconMap[handleURL(newTile.url)],
       url: newTile.url,
       colour: newTile.colour,
       type: newTile.type,
@@ -274,7 +275,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
       name: selectedTile.name,
       url: selectedTile.url,
       colour: selectedTile.colour,
-      icon: IconMap[handleURL(selectedTile.url)],
+      icon: selectedTile.icon?.startsWith('data:') ? selectedTile.icon : IconMap[handleURL(selectedTile.url)],
       type: selectedTile.type,
     })
 
@@ -339,7 +340,8 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
               >
                 <a href={tile.url} target='_blank' rel="noopener noreferrer" className='h-full w-full' onClick={(e) => draggedTile && e.preventDefault()}>
                   <div className="tile-content w-full h-full flex flex-col justify-end items-start p-1" style={{
-                    backgroundImage: `url(https://cdn.simpleicons.org/${tile.icon}/ffffff)`, backgroundPosition: 'center center',
+                    backgroundImage: tile.icon?.startsWith('data:') ? `url(${tile.icon})` : `url(https://cdn.simpleicons.org/${tile.icon}/ffffff)`,
+                    backgroundPosition: 'center center',
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '30%'
                   }}>
@@ -365,7 +367,8 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
               }}
             >
               <div className="tile-content w-full h-full flex flex-col justify-end items-start p-1" style={{
-                backgroundImage: `url(https://cdn.simpleicons.org/${draggedTile.icon}/ffffff)`, backgroundPosition: 'center center',
+                backgroundImage: draggedTile.icon?.startsWith('data:') ? `url(${draggedTile.icon})` : `url(https://cdn.simpleicons.org/${draggedTile.icon}/ffffff)`,
+                backgroundPosition: 'center center',
                 backgroundRepeat: 'no-repeat',
                 backgroundSize: '30%'
               }}>
@@ -408,13 +411,13 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
           </div>
         )
       }
-      {showAddModal && <Modal heading={'Add Tile'} Tile={newTile} setTile={setNewTile} doTile={addTile} setShowModal={setShowAddModal} />}
-      {showEditModal && <Modal heading={'Edit Tile'} Tile={selectedTile} setTile={setSelectedTile} doTile={saveEditedTile} setShowModal={setShowEditModal} />}
+      {showAddModal && <Modal heading={'Add Tile'} Tile={newTile} setTile={setNewTile} doTile={addTile} setCustomIcon={setCustomIcon} setShowModal={setShowAddModal} />}
+      {showEditModal && <Modal heading={'Edit Tile'} Tile={selectedTile} setTile={setSelectedTile} doTile={saveEditedTile} setCustomIcon={setCustomIcon} setShowModal={setShowEditModal} />}
     </div >
   )
 }
 
-const Modal = ({ heading, Tile, setTile, doTile, setShowModal }) => {
+const Modal = ({ heading, Tile, setTile, doTile, setCustomIcon, setShowModal }) => {
   return (
     <div className="modal-backdrop bg-[00000066] fixed flex items-center justify-center inset-0 z-51">
       <div className="modal w-1/2 bg-[#181818] p-4 flex flex-col gap-4 text-white">
@@ -437,7 +440,41 @@ const Modal = ({ heading, Tile, setTile, doTile, setShowModal }) => {
             colour: e.target.value
           })}
         />
-
+        <input
+          type="file"
+          className='hidden'
+          id='icon-upload'
+          accept="image/*"
+          onChange={e => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            const reader = new FileReader()
+            reader.onload = (ev) => {
+              const img = new Image()
+              img.onload = () => {
+                const MAX_SIZE = 100
+                let { width, height } = img
+                const ratio = Math.min(MAX_SIZE / width, MAX_SIZE / height)
+                width = Math.round(width * ratio)
+                height = Math.round(height * ratio)
+                const canvas = document.createElement('canvas')
+                canvas.width = MAX_SIZE
+                canvas.height = MAX_SIZE
+                const ctx = canvas.getContext('2d')!
+                ctx.clearRect(0, 0, MAX_SIZE, MAX_SIZE)
+                const x = Math.round((MAX_SIZE - width) / 2)
+                const y = Math.round((MAX_SIZE - height) / 2)
+                ctx.drawImage(img, x, y, width, height)
+                const resizedBase64 = canvas.toDataURL('image/png', 1)
+                setCustomIcon(resizedBase64)
+                setTile(prev => prev ? { ...prev, icon: resizedBase64 } : null)
+              }
+              img.src = ev.target?.result as string
+            }
+            reader.readAsDataURL(file)
+          }}
+        />
+        <label htmlFor="icon-upload" className='metro-button-attention'>Upload Custom Icon (Optional)</label>
         <select value={Tile.type} className='bg-[#252525] text-white p-2' required onChange={e =>
           setTile({
             ...Tile,
@@ -583,7 +620,7 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
 
   const applyTheme = (theme: string) => {
     if (!window.confirm(`Apply ${theme} theme?`)) return
-    let newSettings = { ...settings, theme : theme }
+    let newSettings = { ...settings, theme: theme }
     if (theme === 'windows8') {
       newSettings = {
         ...newSettings,
