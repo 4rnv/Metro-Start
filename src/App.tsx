@@ -723,135 +723,140 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
           <button className='inline-block cursor-pointer' title='Save Settings' onClick={() => { confirmSettings({ ...settings }) }}>Save Settings</button>
           <span className='text-white text-3xl'>Scroll left for start</span>
         </div>
-
       </div>
-      <div className='settings-group'>
-        <p>Tile Gap</p>
-        <div className='flex items-center gap-4'>
-          <input
-            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
-            min={0}
-            max={16}
-            step={4}
-            value={settings.gap}
-            onChange={e =>
-              setSettings({
-                ...settings,
-                gap: Number(e.target.value)
-              })
-            }
-          />
-          <span className='text-xl tracking-wide'>{settings.gap}px</span>
-        </div>
-      </div>
-      <div className='settings-group'>
-        <p className='flex items-center gap-4'>
-          <input type="checkbox" className='metro-checkbox' checked={settings.transparency}
-            onChange={e =>
-              setSettings({
-                ...settings,
-                transparency: e.target.checked
-              })
-            }
-          />
-          Transparency Effects
-        </p>
-      </div>
-      <div className='settings-group'>
-        <p>Opacity</p>
-        <div className='flex items-center gap-4'>
-          <input
-            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
-            min={0}
-            max={255}
-            step={51}
-            value={settings.opacity}
-            onChange={e =>
-              setSettings({
-                ...settings,
-                opacity: Number(e.target.value)
-              })
-            }
-          />
-          <span>{Number(settings.opacity) / 51}</span>
-        </div>
-      </div>
-      <div className='settings-group'>
-        <p>Padding</p>
-        <div className='flex items-center gap-4'>
-          <span>Horizontal</span>
-          <input
-            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
-            min={0}
-            max={400}
-            step={40}
-            value={settings.horizontalPadding}
-            onChange={e =>
-              setSettings({
-                ...settings,
-                horizontalPadding: Number(e.target.value)
-              })
-            }
-          />
-          <span>{settings.horizontalPadding / 40}</span>
-        </div>
-        <div className='flex items-center gap-4'>
-          <span>Vertical</span>
-          <input
-            className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
-            min={0}
-            max={400}
-            step={40}
-            value={settings.verticalPadding}
-            onChange={e =>
-              setSettings({
-                ...settings,
-                verticalPadding: Number(e.target.value)
-              })
-            }
-          />
-          <span>{settings.verticalPadding / 40}</span>
-        </div>
-      </div>
-      <div className='settings-group'>
-        <p>Background Image URL</p>
-        <input type="text" className='bg-[#00000066] border-2 border-[#252525] focus:border-white hover:border-white p-2 outline-none'
-          value={settings.backgroundImage}
-          onChange={e =>
-            setSettings({
-              ...settings,
-              backgroundImage: validateBgImage(e.target.value)
-            })
-          }
-        />
-      </div>
-      <div className='settings-group'>
-        <p>Theme</p>
-        <select
-          className='bg-[#00000066] border-2 border-transparent focus:border-white hover:border-white p-2 outline-none'
-          value={settings.theme}
-          onChange={e => {
-            applyTheme(e.target.value)
-          }}
-        >
-          <option value="default">Default</option>
-          <option value="windows8">Windows 8</option>
-          <option value="windows10">Windows 10</option>
-        </select>
-      </div>
-      <div className='settings-group'>
-        <p>Import/Export Tiles</p>
-        <div className='w-20 gap-4 flex'>
-          <label className="metro-button-attention">
-            Import
+      <div className='p-4'>
+        <div className='settings-group'>
+          <p>Tile Gap</p>
+          <div className='flex items-center gap-4'>
             <input
-              type="file"
-              accept=".json,application/json"
-              onChange={importTiles}
-              className="hidden"
+              className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+              min={0}
+              max={16}
+              step={4}
+              value={settings.gap}
+              onChange={e =>
+                setSettings({
+                  ...settings,
+                  gap: Number(e.target.value)
+                })
+              }
             />
-          </label>
-          <button className='metro-button-attention' onClick={() => exportTiles()}>Export</button>
+            <span className='text-xl tracking-wide'>{settings.gap}px</span>
+          </div>
+        </div>
+        <div className='settings-group'>
+          <p className='flex items-center gap-4'>
+            <input type="checkbox" className='metro-checkbox' checked={settings.transparency}
+              onChange={e =>
+                setSettings({
+                  ...settings,
+                  transparency: e.target.checked
+                })
+              }
+            />
+            Transparency Effects
+          </p>
+        </div>
+        <div className='settings-group'>
+          <p>Opacity</p>
+          <div className='flex items-center gap-4'>
+            <input
+              className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+              min={0}
+              max={255}
+              step={51}
+              value={settings.opacity}
+              onChange={e =>
+                setSettings({
+                  ...settings,
+                  opacity: Number(e.target.value)
+                })
+              }
+            />
+            <span>{Number(settings.opacity) / 51}</span>
+          </div>
+        </div>
+        <div className='settings-group'>
+          <p>Padding</p>
+          <div className='flex items-center gap-4'>
+            <span>Horizontal</span>
+            <input
+              className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+              min={0}
+              max={400}
+              step={40}
+              value={settings.horizontalPadding}
+              onChange={e =>
+                setSettings({
+                  ...settings,
+                  horizontalPadding: Number(e.target.value)
+                })
+              }
+            />
+            <span>{settings.horizontalPadding / 40}</span>
+          </div>
+          <div className='flex items-center gap-4'>
+            <span>Vertical</span>
+            <input
+              className='metro-slider appearance-none w-1/4 bg-[#505050] h-2' type="range"
+              min={0}
+              max={400}
+              step={40}
+              value={settings.verticalPadding}
+              onChange={e =>
+                setSettings({
+                  ...settings,
+                  verticalPadding: Number(e.target.value)
+                })
+              }
+            />
+            <span>{settings.verticalPadding / 40}</span>
+          </div>
+        </div>
+        <div className='settings-group'>
+          <p>Background Image URL</p>
+          <input type="text" className='bg-[#00000066] border-2 border-[#252525] focus:border-white hover:border-white p-2 outline-none'
+            value={settings.backgroundImage}
+            onChange={e =>
+              setSettings({
+                ...settings,
+                backgroundImage: validateBgImage(e.target.value)
+              })
+            }
+          />
+        </div>
+        <div className='settings-group'>
+          <p>Theme</p>
+          <select
+            className='bg-[#00000066] border-2 border-transparent focus:border-white hover:border-white p-2 outline-none'
+            value={settings.theme}
+            onChange={e => {
+              applyTheme(e.target.value)
+            }}
+          >
+            <option value="default">Default</option>
+            <option value="windows8">Windows 8</option>
+            <option value="windows10">Windows 10</option>
+          </select>
+        </div>
+        <div className='settings-group'>
+          <p>Import/Export Tiles</p>
+          <div className='w-20 gap-4 flex'>
+            <label className="metro-button-attention">
+              Import
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={importTiles}
+                className="hidden"
+              />
+            </label>
+            <button className='metro-button-attention' onClick={() => exportTiles()}>Export</button>
+          </div>
+        </div>
+        <div className='settings-group text-2xl border-1'>
+          <a className="hover:text-[#1BA1E2]" href="https://github.com/4rnv/Metro-Start" target='_blank'>Source code</a>
+          <a className="hover:text-[#1BA1E2]" href="https://github.com/4rnv/Metro-Start/issues" target='_blank'>Report a bug</a>
         </div>
       </div>
     </div>

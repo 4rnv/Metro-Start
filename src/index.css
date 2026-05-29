@@ -99,7 +99,7 @@ body::-webkit-scrollbar {
 }
 
 .settings-group {
-  @apply flex flex-col w-1/2 gap-2 mt-10 mb-4;
+  @apply flex flex-col w-2/3 gap-2 mt-8 mb-8 p-4 text-xl;
 }
 
 .settings-group p {
