@@ -23,6 +23,7 @@ const IconMap = {
     "duckduckgo.com": "duckduckgo",
     "duck.ai": "duckduckgo",
     "huggingface.co": "huggingface",
-    "firefox.com": "firefox"
+    "firefox.com": "firefox",
+    "mozilla.org": "mozilla",
 }
 export default IconMap

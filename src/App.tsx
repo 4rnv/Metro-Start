@@ -21,11 +21,16 @@ type Settings = {
   transparency: boolean
   opacity: number
   theme: string
-  backgroundImage: string | null
+  backgroundImage: string
   gridRows: number
   gridCols: number
   horizontalPadding: number
   verticalPadding: number
+}
+
+type GridInfo = {
+  rows: number
+  columns: number
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -57,6 +62,19 @@ const ToHex = (num: number) => {
   return hex;
 }
 
+const validateURL = (url: string) => {
+  try {
+    const parsed = new URL(url)
+    return ['http:', 'https:'].includes(parsed.protocol)
+  } catch (error) {
+    return false
+  }
+}
+
+const validateCustomIcon = (icon: string) => {
+  return /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+=*$/.test(icon)
+}
+
 const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Tile[], setTiles: (tiles: Tile[]) => void }) => {
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const [contextMenu, setContextMenu] = useState<{ tileId: string; x: number; y: number } | null>(null)
@@ -65,16 +83,16 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedTile, setSelectedTile] = useState<Tile | null>(null)
-  const [newTile, setNewTile] = useState<Partial<Tile> | null>({
+  const [newTile, setNewTile] = useState<Partial<Tile>>({
     name: '',
     icon: '',
     url: '',
     colour: '#1BA1E2',
     type: 'normal'
   })
-  const [customIcon, setCustomIcon] = useState<string>('')
+  const [_, setCustomIcon] = useState<string>('')
   const gap = settings.gap
-  const gridInfo = {
+  const gridInfo: GridInfo = {
     "rows": settings.gridRows,
     "columns": settings.gridCols
   }
@@ -119,20 +137,31 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   const addTile = () => {
     const position = FindNextTilePosition(tiles, newTile.type as TileType, gridInfo)
     if (position.x === 1 && position.y === 1 && tiles.length > 0) {
-      const canPlace = isPositionFree(tiles, 1, 1, TILE_SIZES[newTile.type as TileType])
+      const canPlace = isPositionFree(tiles, 1, 1, TILE_SIZES[newTile.type as TileType] ?? TILE_SIZES['normal'])
       if (!canPlace) {
         alert("No space left on the grid for this tile size.")
         return
       }
     }
 
+    const isValidURL = newTile.url ? validateURL(newTile.url) : false
+    if (!isValidURL) {
+      alert("Invalid URL, must start with http/https")
+      return
+    }
+
+    if (newTile.icon && newTile.icon.startsWith('data:') && !validateCustomIcon(newTile.icon)) {
+      alert("Invalid custom icon: must be a valid PNG, JPEG, WebP, or GIF data URL")
+      return
+    }
+
     const tile: Tile = {
       id: crypto.randomUUID(),
-      name: newTile.name,
-      icon: newTile.icon?.startsWith('data:') ? newTile.icon : IconMap[handleURL(newTile.url)],
-      url: newTile.url,
-      colour: newTile.colour,
-      type: newTile.type,
+      name: newTile.name || '',
+      icon: newTile.icon?.startsWith('data:') ? newTile.icon : IconMap[handleURL(newTile.url) as keyof typeof IconMap] || '',
+      url: newTile.url || '',
+      colour: newTile.colour || '#1BA1E2',
+      type: newTile.type || 'normal',
       x: position.x,
       y: position.y
     }
@@ -149,7 +178,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
     })
   }
 
-  const handleURL = (url: string) => {
+  const handleURL = (url: any) => {
     try {
       const parsed = new URL(url)
       return parsed.hostname
@@ -187,7 +216,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
     })
 
     // Try to keep position, otherwise find new spot
-    const size = TILE_SIZES[newType]
+    const size = TILE_SIZES[newType as TileType] ?? TILE_SIZES['normal']
     const canStay = isPositionFree(updatedTiles.filter(t => t.id !== id), tile.x, tile.y, size)
 
     if (canStay && tile.x + size.w - 1 <= gridInfo.columns && tile.y + size.h - 1 <= gridInfo.rows) {
@@ -209,26 +238,21 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   const handleDragMove = (e: React.MouseEvent) => {
     if (!draggedTile) return
     const gridRect = e.currentTarget.getBoundingClientRect()
-    const tileSize = TILE_SIZES[draggedTile.type]
-
+    const tileSize = TILE_SIZES[draggedTile.type as TileType] ?? TILE_SIZES['normal']
     const col = Math.max(1, Math.min(gridInfo.columns - tileSize.w + 1,
       Math.floor((e.clientX - gridRect.left) / (baseTileSize + gap)) + 1
     ))
     const row = Math.max(1, Math.min(gridInfo.rows - tileSize.h + 1,
       Math.floor((e.clientY - gridRect.top) / (baseTileSize + gap)) + 1
     ))
-
     setDragPos({ x: col, y: row })
   }
 
   const finishMove = () => {
     if (!draggedTile || !dragPos) return
-
-    const size = TILE_SIZES[draggedTile.type]
+    const size = TILE_SIZES[draggedTile.type as TileType] ?? TILE_SIZES['normal']
     const otherTiles = tiles.filter(t => t.id !== draggedTile.id)
-
     const canPlace = isPositionFree(otherTiles, dragPos.x, dragPos.y, size)
-
     if (canPlace) {
       const updated = UpdateTile(tiles, draggedTile.id, { x: dragPos.x, y: dragPos.y })
       setTiles(updated)
@@ -239,7 +263,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
 
   const isPositionFree = (currentTiles: Tile[], x: number, y: number, size: { w: number, h: number }) => {
     for (const tile of currentTiles) {
-      const tSize = TILE_SIZES[tile.type as TileType]
+      const tSize = TILE_SIZES[tile.type as TileType] ?? TILE_SIZES['normal']
       if (
         x < tile.x + tSize.w &&
         x + size.w > tile.x &&
@@ -271,11 +295,22 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
   const saveEditedTile = () => {
     if (!selectedTile) return
 
+    const isValidURL = validateURL(selectedTile.url)
+    if (!isValidURL) {
+      alert("Invalid URL, must start with http/https")
+      return
+    }
+
+    if (selectedTile.icon && selectedTile.icon.startsWith('data:') && !validateCustomIcon(selectedTile.icon)) {
+      alert("Invalid custom icon: must be a valid PNG, JPEG, WebP, or GIF data URL")
+      return
+    }
+
     const updatedTiles = UpdateTile(tiles, selectedTile.id, {
       name: selectedTile.name,
       url: selectedTile.url,
       colour: selectedTile.colour,
-      icon: selectedTile.icon?.startsWith('data:') ? selectedTile.icon : IconMap[handleURL(selectedTile.url)],
+      icon: selectedTile.icon?.startsWith('data:') ? selectedTile.icon : IconMap[handleURL(selectedTile.url) as keyof typeof IconMap],
       type: selectedTile.type,
     })
 
@@ -315,7 +350,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
           onContextMenu={handleGridContextMenu}
         >
           {tiles.map(tile => {
-            const size = TILE_SIZES[tile.type]
+            const size = TILE_SIZES[tile.type as TileType] ?? TILE_SIZES['normal']
             const isDragging = draggedTile?.id === tile.id
             return (
               <div
@@ -334,7 +369,7 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
                   e.preventDefault()
                   openContextMenu(e, tile.id)
                 }}
-                onMouseDown={(e) => {
+                onMouseDown={(_) => {
                   if (draggedTile) return
                 }}
               >
@@ -359,8 +394,8 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
               style={{
                 background: draggedTile.colour || "#1BA1E2",
                 opacity: 0.85,
-                gridColumn: `${dragPos.x} / span ${TILE_SIZES[draggedTile.type].w}`,
-                gridRow: `${dragPos.y} / span ${TILE_SIZES[draggedTile.type].h}`,
+                gridColumn: `${dragPos.x} / span ${TILE_SIZES[draggedTile.type as TileType].w ?? TILE_SIZES['normal'].w}`,
+                gridRow: `${dragPos.y} / span ${TILE_SIZES[draggedTile.type as TileType].h ?? TILE_SIZES['normal'].h}`,
                 zIndex: 100,
                 boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
                 backdropFilter: settings.transparency ? 'blur(12px)' : 'none'
@@ -411,32 +446,35 @@ const GridSect = ({ settings, tiles, setTiles }: { settings: Settings, tiles: Ti
           </div>
         )
       }
-      {showAddModal && <Modal heading={'Add Tile'} Tile={newTile} setTile={setNewTile} doTile={addTile} setCustomIcon={setCustomIcon} setShowModal={setShowAddModal} />}
-      {showEditModal && <Modal heading={'Edit Tile'} Tile={selectedTile} setTile={setSelectedTile} doTile={saveEditedTile} setCustomIcon={setCustomIcon} setShowModal={setShowEditModal} />}
+      {showAddModal && <Modal heading={'Add Tile'} tile={newTile} setTile={setNewTile} doTile={addTile} setCustomIcon={setCustomIcon} setShowModal={setShowAddModal} />}
+      {showEditModal && selectedTile && <Modal heading={'Edit Tile'} tile={selectedTile} setTile={setSelectedTile} doTile={saveEditedTile} setCustomIcon={setCustomIcon} setShowModal={setShowEditModal} />}
     </div >
   )
 }
 
-const Modal = ({ heading, Tile, setTile, doTile, setCustomIcon, setShowModal }) => {
+const Modal = ({ heading, tile, setTile, doTile, setCustomIcon, setShowModal }: { heading: string, tile: Partial<Tile>, setTile: any, doTile: () => void, setCustomIcon: (string: string) => void, setShowModal: (bool: boolean) => void }) => {
+  if (!tile) {
+    return null
+  }
   return (
     <div className="modal-backdrop bg-[00000066] fixed flex items-center justify-center inset-0 z-51">
       <div className="modal w-1/2 bg-[#181818] p-4 flex flex-col gap-4 text-white">
         <h1 className='text-xl'>{heading}</h1>
-        <input placeholder="Name" value={Tile.name} required onChange={e =>
+        <input placeholder="Name" value={tile.name} required onChange={e =>
           setTile({
-            ...Tile,
+            ...tile,
             name: e.target.value
           })}
         />
-        <input placeholder="URL" value={Tile.url} required onChange={e =>
+        <input placeholder="URL" value={tile.url} required onChange={e =>
           setTile({
-            ...Tile,
+            ...tile,
             url: e.target.value
           })}
         />
-        <input type="color" value={Tile.colour} required onChange={e =>
+        <input type="color" value={tile.colour} required onChange={e =>
           setTile({
-            ...Tile,
+            ...tile,
             colour: e.target.value
           })}
         />
@@ -467,7 +505,7 @@ const Modal = ({ heading, Tile, setTile, doTile, setCustomIcon, setShowModal }) 
                 ctx.drawImage(img, x, y, width, height)
                 const resizedBase64 = canvas.toDataURL('image/png', 1)
                 setCustomIcon(resizedBase64)
-                setTile(prev => prev ? { ...prev, icon: resizedBase64 } : null)
+                setTile((prev: Tile) => prev ? { ...prev, icon: resizedBase64 } : null)
               }
               img.src = ev.target?.result as string
             }
@@ -475,9 +513,9 @@ const Modal = ({ heading, Tile, setTile, doTile, setCustomIcon, setShowModal }) 
           }}
         />
         <label htmlFor="icon-upload" className='metro-button-attention'>Upload Custom Icon (Optional)</label>
-        <select value={Tile.type} className='bg-[#252525] text-white p-2' required onChange={e =>
+        <select value={tile.type} className='bg-[#252525] text-white p-2' required onChange={e =>
           setTile({
-            ...Tile,
+            ...tile,
             type: e.target.value
           })}
         >
@@ -490,7 +528,13 @@ const Modal = ({ heading, Tile, setTile, doTile, setCustomIcon, setShowModal }) 
           <button onClick={doTile} className='metro-button-attention'>{heading === 'Add Tile' ? 'Create' : 'Save'}</button>
           <button onClick={() => {
             setShowModal(false)
-            setTile(null)
+            setTile({
+              name: '',
+              icon: '',
+              url: '',
+              colour: '#1BA1E2',
+              type: 'normal'
+            })
           }} className='metro-button-subdued'>Cancel</button>
         </div>
       </div>
@@ -501,15 +545,14 @@ const Modal = ({ heading, Tile, setTile, doTile, setCustomIcon, setShowModal }) 
 const FindNextTilePosition = (
   tiles: Tile[],
   type: TileType,
-  gridInfo
+  gridInfo: GridInfo
 ) => {
-  const size = TILE_SIZES[type]
+  const size = TILE_SIZES[type] ?? TILE_SIZES['normal']
   for (let y = 1; y <= gridInfo.rows; y++) {
     for (let x = 1; x <= gridInfo.columns; x++) {
       let occupied = false
       for (const tile of tiles) {
-        const tileSize =
-          TILE_SIZES[tile.type]
+        const tileSize = TILE_SIZES[tile.type as TileType] ?? TILE_SIZES['normal']
         const overlaps =
           x < tile.x + tileSize.w &&
           x + size.w > tile.x &&
@@ -583,15 +626,16 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
     reader.onload = (e) => {
       try {
         const parsed = JSON.parse(e.target?.result as string)
-        const isValidTile = parsed.every(tile => tile.id && tile.name && tile.type && tile.x && tile.y)
+        const isValidTile = parsed.every((tile: Tile) => tile.id && tile.name && tile.type && tile.x && tile.y)
         if (!isValidTile) {
-          throw new Error('Invalid format: Expected array of tiles')
+          alert('Invalid format: Expected array of tiles')
+          return
         }
         SaveTiles(parsed)
         setTiles(parsed)
         alert("Tiles imported successfully")
       } catch (err) {
-        alert(`Invalid File: ${err}`)
+        alert(`Invalid File`)
         console.error("Invalid File", err)
       }
     }
@@ -612,7 +656,7 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
       link.click()
       URL.revokeObjectURL(link.href)
     } catch (err) {
-      alert(`Export failed: ${err}`)
+      alert(`Export failed`)
       console.error(`Export failed: ${err}`)
 
     }
@@ -649,6 +693,24 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
     setSettings(newSettings)
   }
 
+  const validateBgImage = (bgImage: string) => {
+    if (!bgImage) {
+      return ''
+    }
+    try {
+      const parsed = new URL(bgImage)
+      if (['http:', 'https:'].includes(parsed.protocol)) {
+        return bgImage
+      }
+      return ''
+    } catch {
+      if (/^assets\/[a-zA-Z0-9._-]+$/.test(bgImage)) {
+        return bgImage
+      }
+      return ''
+    }
+  }
+
   const confirmSettings = (newSettings: Settings) => {
     if (window.confirm('Apply these settings?')) {
       setSettings(newSettings)
@@ -656,7 +718,14 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
   }
   return (
     <div className='w-screen h-screen shrink-0 p-4 overflow-scroll'>
-      <div className='text-white pb-8 flex flex-row items-center justify-between'><h1 className='text-5xl inline-block ml-2'>Settings</h1><button className='text-white text-3xl inline-block'>Scroll left for start</button></div>
+      <div className='text-white pb-8 flex flex-row items-center justify-between'>
+        <h1 className='text-5xl inline-block ml-2'>Settings</h1>
+        <div className='w-1/3 flex justify-between text-3xl text-white'>
+          <button className='inline-block cursor-pointer' title='Save Settings' onClick={() => { confirmSettings({ ...settings }) }}>Save Settings</button>
+          <span className='text-white text-3xl'>Scroll left for start</span>
+        </div>
+
+      </div>
       <div className='settings-group'>
         <p>Tile Gap</p>
         <div className='flex items-center gap-4'>
@@ -750,9 +819,9 @@ const SettingsSect = ({ settings, setSettings, setTiles }: { settings: Settings,
         <input type="text" className='bg-[#00000066] border-2 border-[#252525] focus:border-white hover:border-white p-2 outline-none'
           value={settings.backgroundImage}
           onChange={e =>
-            confirmSettings({
+            setSettings({
               ...settings,
-              backgroundImage: e.target.value
+              backgroundImage: validateBgImage(e.target.value)
             })
           }
         />
