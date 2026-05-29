@@ -1,7 +1,6 @@
 import { useState, useEffect, type ChangeEvent } from 'react'
 import tilesData from './data/tiles.json'
 import IconMap from './iconMap'
-import './App.css'
 
 type TileType = 'tiny' | 'normal' | 'wide' | 'large'
 
@@ -884,17 +883,23 @@ const App = () => {
     SaveTiles(tiles)
   }, [tiles])
   return (
-    <div className="horizontal-slider flex overflow-hidden transition-transform duration-300" style={{
-      backgroundImage: settings.backgroundImage
-        ? `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(${settings.backgroundImage})`
-        : undefined,
-      backgroundSize: 'cover, cover',
-      backgroundPosition: 'center, center',
-      backgroundAttachment: 'fixed',
-    }}>
-      <GridSect settings={settings} tiles={tiles} setTiles={setTiles} />
-      <SettingsSect settings={settings} setSettings={setSettings} setTiles={setTiles} />
-    </div>
+    <>
+      <div className='banner' id='banner'>
+        <p>Metro Start is a browser startpage intended for large screen devices (desktops, laptops, tablets). For the best experience, open this page on your desktop, laptop or tablet.</p>
+        <button className='metro-button-attention' onClick={() => document.getElementById('banner').style.display = 'none'}>Close</button>
+      </div>
+      <div className="horizontal-slider flex overflow-hidden transition-transform duration-300" style={{
+        backgroundImage: settings.backgroundImage
+          ? `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(${settings.backgroundImage})`
+          : undefined,
+        backgroundSize: 'cover, cover',
+        backgroundPosition: 'center, center',
+        backgroundAttachment: 'fixed',
+      }}>
+        <GridSect settings={settings} tiles={tiles} setTiles={setTiles} />
+        <SettingsSect settings={settings} setSettings={setSettings} setTiles={setTiles} />
+      </div>
+    </>
   )
 }
 
