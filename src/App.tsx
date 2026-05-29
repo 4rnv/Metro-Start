@@ -886,7 +886,7 @@ const App = () => {
     <>
       <div className='banner' id='banner'>
         <p>Metro Start is a browser startpage intended for large screen devices (desktops, laptops, tablets). For the best experience, open this page on your desktop, laptop or tablet.</p>
-        <button className='metro-button-attention' onClick={() => document.getElementById('banner').style.display = 'none'}>Close</button>
+        <button className='metro-button-attention' onClick={() => document.getElementById('banner')!.style.display = 'none'}>Close</button>
       </div>
       <div className="horizontal-slider flex overflow-hidden transition-transform duration-300" style={{
         backgroundImage: settings.backgroundImage
